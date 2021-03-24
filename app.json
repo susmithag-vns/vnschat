@@ -1,0 +1,12 @@
+{
+  "name": "vnschat",
+  "displayName": "vnschat",
+  "expo": {
+    "name": "vnschat",
+    "slug": "vnschat",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  }
+}
