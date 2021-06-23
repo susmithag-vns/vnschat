@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
         backgroundColor:'white',
-        borderRadius: 0,
+        borderRadius: 10,
         borderWidth: 0,
         borderTopWidth: 1 / PixelRatio.get(),
         borderColor: '#d6d7da',

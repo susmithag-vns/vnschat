@@ -1,5 +1,5 @@
 import XMPP from 'react-native-xmpp';
-const DOMAIN = "jabber.hot-chilli.net";
+const DOMAIN = "13.233.215.155";
 const SCHEMA = "android";
 import {observable} from 'mobx';
 import autobind from 'autobind'
@@ -9,56 +9,47 @@ class XmppStore  {
     @observable loading = false;
     @observable loginError = null;
     @observable error = null;
+    @observable storemessage =null;
     @observable conversation = [];
     
     constructor() {
         XMPP.on('loginError', this.onLoginError);
         XMPP.on('error', this.onError);
-        XMPP.on('disconnect', this.onDisconnect);
+        // XMPP.on('disconnect', this.onDisconnect);
         XMPP.on('login', this.onLogin);
-        XMPP.on('message', this.onReceiveMessage);
+        XMPP.on('message', (message) => console.log('MESSAGE:' + JSON.stringify(message)));
+        XMPP.on('presence', (message) => console.log('PRESENCE:' + JSON.stringify(message)));
+        
+
         // default values
-        this.local = 'user1';
-        this.remote = 'admin';
-    }
-    // serverconnection(user){
-      
-    //     XMPP.connect(user, password);
-    // }
-    
-    _userForName(name){
-        console.log("Store  name"+name)
-        return name 
+        // this.username="",x
+        // this.password=""
     }
 
     sendMessage(message){
-        if (!this.remote || !this.remote.trim()){
-            console.error("No remote username is defined");
-        }
-        if (!message || !message.trim()){
-            return false;
-        }
+        var to = '7780234146@groupin.app';
+        console.log("Store sendMessage"+message +"to"+to)
         // add to list of messages
         this.conversation.unshift({own:true, text:message.trim()});
         // empty sent message
         this.error = null;
         // send to XMPP server
-        XMPP.message(message.trim(), "susmi@ec2-13-233-8-121.ap-south-1.compute.amazonaws.com")
+        XMPP.message(message.trim(), to)
     }
 
     onReceiveMessage({from, body}){
-        console.log("Store onReceiveMessage")
+        console.log("Store onReceiveMessage"+JSON.stringify(from))
         // extract username from XMPP UID
         if (!from || !body){
             return;
         }
         var name = from.match(/^([^@]*)@/)[1];
-        this.chat.unshift({own:false, text:body});
+        this.conversation.unshift({own:false, text:body});
     }
 
     onLoginError(){
         this.loading = false;
-        this.chat.replace([]);
+        // this.conversation = [];
         this.loginError = "Cannot authenticate, please use correct local username";
     }
 
@@ -70,41 +61,33 @@ class XmppStore  {
         this.logged = false;
         this.loginError = message;
     }
-
+    
     onLogin(){
         console.log("Store LOGGED!");
-        this.chat.replace([]);
+        // this.conversation =[];
         this.loading = false;
         this.loginError = null;
         this.logged = true;
     }
 
-    login(storlogin){
-        console.log("Store  name thislocal =="+this.local+" ==test local "+storlogin.local," store thisremote =="+this.remote+"==test remote==="+storlogin.remote)
-        this.local = storlogin.local;
-        this.remote = storlogin.remote;
-    
-        
-        if (!storlogin.local ){
-            this.loginError = "Local username should not be empty";
-        } else if (!storlogin.remote ){
-            this.loginError = "Remote username should not be empty";
-        } else if (storlogin.local==storlogin.remote){
-            this.loginError = "Local username should not be the same as remote username";
-        } else {
-            this.loginError = null;
-
+    onloginuser(username,password){
+         console.log("Store  name thislocal =="+username+password)
+         var user =username.toString()
+         var pwd =password.toString()
+         var host ='13.233.215.155'
             // try to login to test domain with the same password as username
-            XMPP.connect(this._userForName("admin"),"password");
-            // this.serverconnection("admin")
+        //    host = JSON.stringify(host)
+        //    var hostid = JSON.stringify(host)
+           console.log("Store  name hostid ==  " + JSON.stringify(host) )
+              XMPP.connect(user,pwd,'',host);
             this.loading = true;
-        }
+        // }
 
     }
 
-    disconnect() {
-        XMPP.disconnect();
-    }
+    // disconnect() {
+    //     XMPP.disconnect();
+    // }
 
 }
 

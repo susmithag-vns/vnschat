@@ -6,7 +6,7 @@ import InvertibleScrollView from 'react-native-invertible-scroll-view';
 import xmpp from '../stores'
 import { FlatList } from 'react-native-gesture-handler';
 // const ds = new FlatList.data({rowHasChanged: (r1, r2) => r1 !== r2});
-
+const XMPP = require('react-native-xmpp');
 export default class Chat extends React.Component {
     static title(props) {
         return xmpp.remote;
@@ -18,20 +18,23 @@ export default class Chat extends React.Component {
             height: 0,
             local:xmpp.local,
             remote:xmpp.remote,
+            messagelist:xmpp.conversation
         }
     }
     componentDidMount() {
         Keyboard.addListener('keyboardWillShow', this.keyboardWillShow.bind(this));
         Keyboard.addListener('keyboardWillHide', this.keyboardWillHide.bind(this));
         this.mounted = true;
-        console.log("chatjs xmpplocal" + xmpp.local)
-        xmpp.login(this.state);
+        console.log("chatjs xmpplocal" + JSON.stringify(xmpp.conversation)+JSON.stringify(xmpp.username)+JSON.stringify(xmpp.password))
+        // xmpp.onloginuser(this.state.navigation.userid, this.state.navigation.password)
+        this.setState({messagelist:xmpp.conversation})
     }
 
     componentWillUnmount() {
         this.mounted = false;
         Keyboard.removeListener('keyboardWillShow');
         Keyboard.removeListener('keyboardWillHide');
+        XMPP.removeListeners()
     }
     keyboardWillShow(e) {
         if (this.mounted) this.setState({ height: e.endCoordinates.height });
@@ -40,6 +43,39 @@ export default class Chat extends React.Component {
     keyboardWillHide(e) {
         if (this.mounted) this.setState({ height: 0 });
     }
+    submit(msg){
+     
+         var to = '7780234146@groupin.app';
+         XMPP.message(msg, to);
+        // let obj={
+        //     msg:this.state.message,
+        //     own:"right"
+        // }
+        // this.state.messagelist.push(obj)
+        console.log("conversation"+JSON.stringify(xmpp.conversation))
+        // var to = this.state.navigation.userid;
+        // xmpp.sendMessage(msg, to);
+        // let obj={
+        //     msg:this.state.message,
+        //     own:"right"
+        // }
+        // this.state.messagelist.push(obj)
+        // var fromid = this.state.navigation.userid;
+        // xmpp.onReceiveMessage(fromid)
+    }
+    componentWillUnmount(){
+        XMPP.disconnect()
+        XMPP.removeListeners()
+    }
+    _renderItem=({item})=>{
+        if(this.state.messagelist!==undefined){
+        return(
+            <View >
+                <Text style={[styles.messageItem, { textAlign: item.own ? 'right' : 'left',marginLeft:item.own=='right'?50:0 }]}>{item.msg}</Text>
+            </View>
+        )
+        }
+    }
     render() {
         // const dataSource = ds.cloneWithRows(xmpp.conversation.map(x => x));
         const dataSource = JSON.stringify(xmpp.conversation)
@@ -47,13 +83,15 @@ export default class Chat extends React.Component {
         return (
             <View style={styles.container}>
                 <View style={{ flex: 1 }}>
-                    {/* <FlatList enableEmptySections
-                        ref="messages"
-                        renderScrollComponent={props => <InvertibleScrollView {...props} inverted />}
-                        dataSource={dataSource}
-                        renderItem={(row) =>
-                            <Text style={[styles.messageItem, { textAlign: row.own ? 'right' : 'left' }]}>{row.text}</Text>}
-                    /> */}
+              
+                    <FlatList 
+                    // enableEmptySections
+                        // renderScrollComponent={props => <InvertibleScrollView {...props} inverted />}
+                        data={this.state.messagelist}
+                        renderItem={this._renderItem}
+                        keyExtractor={(item, index) => index.toString()}
+                    />
+                   
                     {/* <FlatList
                     inverted={true}
                     ref="messages"
@@ -74,7 +112,7 @@ export default class Chat extends React.Component {
                     <View style={styles.sendButton}>
                         <Button
                             title="Send"
-                            onPress={() => { xmpp.sendMessage(this.state.message); this.setState({ message: '' }) }} disabled={!this.state.message || !this.state.message.trim()}>
+                            onPress={() => { this.submit(this.state.message); this.setState({ message: '' }) }} disabled={!this.state.message || !this.state.message.trim()}>
 
                         </Button>
                     </View>
@@ -133,7 +171,8 @@ const styles = {
     messageItem: {
         padding: 10,
         paddingRight: 20,
-        fontSize: 15
+        fontSize: 15,
+        backgroundColor: 'powderblue',
     },
     messageBar: {
         backgroundColor: 'white',
